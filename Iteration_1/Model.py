@@ -2,9 +2,7 @@
 
 main_directory = "C:/Users/dylan/..."
 
-
 #####################################################################################################
-
 
 # Packages
 import re
@@ -40,7 +38,6 @@ print(color.BOLD + 'Hello World !' + color.END)
 # Primary Paramters of Interest
 
 #####################################################################################################
-
 
 # 1. Lambda - Probability of Receiving the Large Payoff
 
@@ -84,8 +81,6 @@ T_low = 100
 T_medium = 100
 T_high = 100
 
-
-
 #####################################################################################################
 
 # Combined Parameters
@@ -93,6 +88,7 @@ T_high = 100
 # Concrete Parameters
 
 #####################################################################################################
+
 ## Creating the Initial Set Up Variables ##
 ## If a variable above is changed, this bloc must be run again ##
 
@@ -226,7 +222,6 @@ GPN_high = []
 Time_Periods_high = []
 time_counter_high = 0
 
-
 # 12. Further Graphing Configurations 
 
 GPN_sum_low = 0
@@ -244,7 +239,6 @@ GPN_sum_high = 0
 GPR_sum_high = 0
 cumulative_payout_GPN_high = list(accumulate(GPN_high))
 cumulative_payout_GPR_high = list(accumulate(GPR_high))
-
 
 #####################################################################################################
 
@@ -301,8 +295,6 @@ if max(expected_reorganize_payoff_high, expected_no_reorganize_payoff_high) == e
 else: 
     print(color.BOLD + "High Game: In this case, the firm will not reorganize." + color.END)
     
-    
-    
 #####################################################################################################
  # Low Configuration -  Agility Game with Reorganization
 #####################################################################################################
@@ -314,8 +306,7 @@ def agility_game_with_reorganization_low():
     global hit_results_low
     global mechanism_counter_low
     global assurance_low
-   
-       
+         
     while t_low < T_low:
         t_low = t_low + 1
         #sum = sum + t
@@ -472,8 +463,7 @@ def agility_game_with_reorganization_medium():
     global hit_results_medium
     global mechanism_counter_medium
     global assurance_medium
-    
-       
+        
     while t_medium < T_medium:
         t_medium = t_medium + 1
         #sum = sum + t
@@ -568,10 +558,8 @@ def agility_game_without_reorganization_medium():
     global t_medium
     global miss_results_noorg_medium
     global hit_results_medium
-    
     global assurance_medium
-    global mechanism_counter_medium
-    
+    global mechanism_counter_medium 
     
     while t_medium < T_medium:
         t_medium = t_medium + 1
@@ -611,19 +599,18 @@ def agility_game_without_reorganization_medium():
             loser_medium = float(m_medium)
             GPN_medium.append(loser_medium)
             Time_Periods_medium.append(t_medium)
-
-        
+       
     print("You have missed", miss_results_noorg_medium, "times and hit", hit_results_medium, "times.")
     print("You have a individual payoffs of", GPN_medium)
     print("You have cumulative payoffs of", list(accumulate(GPN_medium)))
     print("Total Time Periods:", Time_Periods_medium)
-
     
 #####################################################################################################
 """
 High Configuration - Agility Game with Reorganization
 """
 #####################################################################################################
+
 # Loop Attempt #  
 def agility_game_with_reorganization_high():
     global t_high
@@ -631,8 +618,7 @@ def agility_game_with_reorganization_high():
     global hit_results_high
     global mechanism_counter_high
     global assurance_high
-   
-       
+        
     while t_high < T_high:
         t_high = t_high + 1
         #sum = sum + t
@@ -775,16 +761,15 @@ def agility_game_without_reorganization_high():
     print("You have a individual payoffs of", GPN_high)
     print("You have cumulative payoffs of", list(accumulate(GPN_high)))
     print("Total Time Periods:", Time_Periods_high)
-
-        
+      
 #####################################################################################################
 """
 Combined Configuration Reset
 
-Run this code to perform additional iterations of the simulation.
-
+Run this code to perform additional iterations of the simulation
 """
 #####################################################################################################
+
 ## Hard Reset ##
 
 t_low = t_low + 1
@@ -849,11 +834,11 @@ else:
     agility_game_without_reorganization_low()
     
 #####################################################################################################
-
 """
 Medium Configuration
 """
 #####################################################################################################
+
 # Starting the Game: 
 
 if expected_reorganize_payoff_medium > expected_no_reorganize_payoff_medium:
@@ -864,11 +849,11 @@ else:
     agility_game_without_reorganization_medium()
     
 #####################################################################################################
-
 """
 High Configuration
 """
 #####################################################################################################
+
 # Starting the Game: 
 
 if expected_reorganize_payoff_high > expected_no_reorganize_payoff_high:
@@ -881,7 +866,6 @@ else:
 #####################################################################################################
 
 # Graphing Configurations 
-
 """
 Combined Configuration
 """
@@ -930,7 +914,6 @@ plt.xlabel("Number of Time Periods")
 plt.legend(['Low Alpha: 10%', 'Medium Alpha: 50%', 'High Alpha: 90%'])
 #plt.zlabel("Lambda")
 plt.show()
-
 
 #####################################################################################################
 """
