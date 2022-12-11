@@ -1,0 +1,6 @@
+"""
+The first iteration of the model features a simulation that extends to any number of periods. 
+However, it is incomplete.
+The belief stucture, which should change depending on the individual payoffs, remains constant. 
+Furthermore, the mechanism which governs decision making is fixed and determined at the beginning of the simulation. 
+
