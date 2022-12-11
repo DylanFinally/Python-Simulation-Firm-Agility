@@ -1,6 +1,11 @@
 # Working Directory
+
 main_directory = "C:/Users/dylan/..."
+
+
 #####################################################################################################
+
+
 # Packages
 import re
 import numpy as np
@@ -10,7 +15,9 @@ import operator
 import matplotlib
 import matplotlib.pyplot as plt
 from itertools import accumulate
+
 #####################################################################################################
+
 # For better oversight - a color class to add different print() possibilities
 class color:
    PURPLE = '\033[95m'
@@ -25,9 +32,6 @@ class color:
    END = '\033[0m'
 
 print(color.BOLD + 'Hello World !' + color.END)
-
-
-
 
 #####################################################################################################
 
