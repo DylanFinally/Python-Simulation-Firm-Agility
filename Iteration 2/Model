@@ -1,0 +1,451 @@
+####################################
+### Importing Necessary Packages ###
+####################################
+
+import re
+import numpy as np
+import pandas as pd
+import itertools 
+import operator 
+import matplotlib
+import matplotlib.pyplot as plt
+from itertools import accumulate
+import datetime 
+import os 
+
+############################################################################
+
+#########################
+### Working Directory ###
+#########################
+
+os.chdir(r'C:\Users\dylan\....')
+
+############################################################################
+
+######################
+### Printing Class ### 
+######################
+
+class color:
+   PURPLE = '\033[95m'
+   CYAN = '\033[96m'
+   DARKCYAN = '\033[36m'
+   BLUE = '\033[94m'
+   GREEN = '\033[92m'
+   YELLOW = '\033[93m'
+   RED = '\033[91m'
+   BOLD = '\033[1m'
+   UNDERLINE = '\033[4m'
+   END = '\033[0m'
+
+print(color.BOLD + 'Hello World !' + color.END)
+
+############################################################################
+
+#######################
+### Variable Set up ###
+#######################
+
+l = .5
+g = .6
+T = 2
+c = .5
+a = 5
+M = 15
+m = 10
+ca = c*a
+
+A = (1-l)*(1-g)
+B = (g)
+
+############################################################################
+
+######################
+### Configurations ###
+######################
+
+
+## Creating the Initial Set Up Variables ##
+## If a variable above is changed, this bloc must be run again ##
+
+# State of the environment 
+D = [0,1]
+
+# Product Variety by the Firm / Agent 
+d = 0
+
+# Initial Time Period  
+t = 0
+h = 0
+
+print("Future cost of reorganization is", ca)
+
+# Needed for the np.random outcome function
+game = 1
+
+#needed for binary probability 
+x = 1-g
+y = 1-l
+
+gamma_probabilities = [g, x]
+lambda_probabilities = [l, y]
+
+# 
+
+large_payoff_scheme = [M,0]
+
+# Period 1 Payoffs: 
+just_hit_payoff = M + m 
+dont_hit_payoff = m
+#expected_reorganize_payoff = -ca + (1-g)*l*M + m
+#expected_no_reorganize_payoff = pb*(1-g)*l*M + m
+general_equation = (1-g)*l*M + m
+miss = m - ca
+
+# Configurations to extract results 
+
+hit_results = 0
+miss_results_reorg = 0 
+miss_results_noorg = 0
+miss_results = 0
+miss_counter = 0
+miss_range = T
+# The first mechanism counter ensures that the individual product variety 
+# matches the previous environmental state 
+mechanism_counter_one = 0
+assurance = 0
+# the second mechanism counter ensures that the belief loop resets whenever the
+# large payoff is received
+mechanism_counter_reset = 0
+
+# Graphing Configurations 
+GPR = []
+GPN = []
+#GPR_miss = []
+#GPR_hit = []
+#GPN_miss = []
+#GPN_hit = []
+Time_Periods = []
+time_counter = 0
+pb_store = []
+
+# Further Graphing Configurations 
+GPN_sum = 0
+GPR_sum = 0
+
+cumulative_payout_GPN = list(accumulate(GPN))
+cumulative_payout_GPR = list(accumulate(GPR))
+
+i = 0
+
+#A = (1-l)*(1-g)
+#B = (g)
+
+pb_hit = (A)/(A + B)
+pb_miss = (A**i)/((A**i)+B)
+pb_hit_counter = 0
+pb_miss_counter = 0
+
+n = 0
+pb_miss_test =  (A**n)/((A**n)+B)
+print("pb_miss is", pb_miss)
+print("pb_hit is", pb_hit)
+
+expected_reorganize_payoff = -ca + (1-g)*l*M + m
+expected_no_reorganize_payoff_t1 = pb_hit*(1-g)*l*M + m
+expected_no_reorganize_payoff = pb_miss*(1-g)*l*M + m
+print("expected reorganize payoff is", expected_reorganize_payoff)
+print("expected_no_reorganize_payoff is", expected_no_reorganize_payoff_t1)
+
+print("pb_miss test is", pb_miss_test)
+
+perfect_game_payout = pb_hit*(1-g)*l*M + m
+print("perfect_game_payout =", perfect_game_payout)
+
+# Graphing Configurations
+e_r_p = [expected_reorganize_payoff] * T
+e_n_r_p = []
+
+############################################################################
+
+########################
+### Belief_Structure ###
+########################
+
+# The following code establishes the evolution of the belief structure over the time horizon of the simulation. 
+
+def belief_structure():
+    global miss_counter
+    global pb_hit_counter
+    global pb_miss_counter
+    global expected_no_reorganize_payoff
+    global t 
+    
+    print(color.BOLD + "belief_structure check" + color.END)
+    if miss_counter == 0:
+        pb_hit_counter = pb_hit_counter + 1
+        #t = t + 1
+        print("pb_hit_counter is", pb_hit_counter)
+        bullseye = 1
+        print("your belief of matching the state has reset and is now", bullseye)
+        pb_store.append(bullseye)
+        e_n_r_p.append(perfect_game_payout)
+        #reorganization_check()
+    
+    if miss_counter > 0:
+        #with the current configuration the miss counter does not change
+        #miss_counter = miss_counter + 1
+        pb_miss_counter = pb_miss_counter + 1
+        #t = t + 1
+        print("pb_miss_counter is", pb_miss_counter)
+        pb_miss = (A**i)/((A**i)+B)
+        print("pb_miss is", pb_miss)
+        pb_store.append(pb_miss)
+        expected_no_reorganize_payoff = pb_miss*(1-g)*l*M + m
+        print("expected_no_reorganize_payoff is", expected_no_reorganize_payoff)
+        e_n_r_p.append(expected_no_reorganize_payoff)
+        reorganization_check()
+        
+############################################################################
+
+############################
+### Reorganization_Check ###
+############################
+
+# This first attempt establishes an attempt to create a decision mechanism for the firm when deciding to reorganize. 
+# This example fails to capture value functions and the continuation functions accordingly.  
+
+def reorganization_check():
+    global expected_no_reorganize_payoff
+    global pb_miss
+    global i
+    global state_change
+    global hit_results
+    global miss_results
+    global t
+    global miss_counter
+    
+    print(color.BOLD + "Reorganization_Check()" + color.END)
+    #This check only occurs if the player misses a large payoff. 
+    print("Expected Reorganization Payoff:", expected_reorganize_payoff)
+    #print("Expected Reorganization Payoff:", expected_reorganize_payoff, "and Expected Payoff without Reorganization:", expected_no_reorganize_payoff)    
+    if ((expected_reorganize_payoff > expected_no_reorganize_payoff)) and (t < T):
+        Time_Periods.append(t)
+        #h = t
+        state_change_check = np.random.choice(D, size=game, p=gamma_probabilities)
+        z = state_change
+        #the miss counter resets as soon as the player decides to reorganize
+        miss_counter = 0
+        if z == state_change_check:
+            outcome = np.random.choice(large_payoff_scheme,size=game, p=lambda_probabilities)
+            if outcome == 0:
+                print(color.BOLD + "EMa / M: Miss 2.1" + color.END)
+                miss_counter = miss_counter + 1
+                i = i + 1
+                t = t + 1
+                print("i is", i)
+                belief_structure()
+                miss_results = miss_results + 1
+                hit_results = hit_results
+                loser_1 = float(miss)
+                GPN.append(loser_1)
+
+            else:
+                print(color.BOLD + "EMa / H: Hit 2.1" + color.END)
+                miss_counter = 0
+                i = 1
+                t =  t + 1
+                belief_structure()
+                hit_results = hit_results + 1
+                miss_results = miss_results
+                winner = float(just_hit_payoff)
+                GPN.append(winner)
+
+        else:
+            print(color.BOLD + " EN / M: Miss 2.3" + color.END)
+            miss_counter = miss_counter + 1
+            i = i + 1
+            t = t + 1
+            print("i is", i)
+            belief_structure()
+            miss_results = miss_results + 1
+            hit_results = hit_results
+            loser_1 = float(miss)
+            GPN.append(loser_1)
+            
+############################################################################
+
+####################
+### Agility_Game ###
+####################
+
+# This code initiates the simulation
+
+def agility_game():
+    global t 
+    global miss_results
+    global hit_results
+    global miss_counter
+    global i 
+    global pb_miss
+    global expected_no_reorganize_payoff
+    global state_change
+    global t
+
+    while t < T: 
+        t = t + 1
+        print(color.BOLD + "Agility_Game()" + color.END)
+        print("The Time Period is now", t)
+        state_change = np.random.choice(D, size=game, p=gamma_probabilities)
+        if d == state_change:
+            outcome = np.random.choice(large_payoff_scheme,size=game, p=lambda_probabilities)
+            if outcome == 0:
+                # Miss 1.1 
+                print(color.BOLD + "EMa / M: Miss 1.1" + color.END)
+                miss_counter = miss_counter + 1
+                i = i + 1
+                print("i is", i)
+                belief_structure()
+                reorganization_check()
+                miss_results = miss_results + 1
+                hit_results = hit_results
+                loser = float(m)
+                GPN.append(loser)
+                Time_Periods.append(t)
+                
+            else:
+                # Hit 1.2 
+                print(color.BOLD + "EMa / H: Hit 1.2" + color.END)
+                miss_counter = 0
+                i = 0
+                belief_structure()
+                hit_results = hit_results + 1
+                miss_results = miss_results
+                winner = float(just_hit_payoff)
+                GPN.append(winner)
+                Time_Periods.append(t)
+                         
+        else:
+            # Miss 1.3 
+            print(color.BOLD + "EN / M: Miss 1.3" + color.END)
+            miss_counter = miss_counter + 1
+            i = i + 1
+            print("i is", i)
+            belief_structure()
+            reorganization_check()
+            miss_results = miss_results + 1
+            loser = float(m)
+            GPN.append(loser)
+            Time_Periods.append(t) 
+            
+    print("You have missed", miss_results, "times and hit", hit_results, "times.")
+    print("You have individual payoffs of", GPN)
+    print("You have cumulative payoffs of", list(accumulate(GPN)))
+    print("Total Time Periods:", Time_Periods)
+    print("Evolution of Belief Structure", pb_store)
+    
+    
+############################################################################
+
+####################
+### Agility Game ###
+####################
+
+# Start the simulation
+    
+agility_game()
+    
+    
+############################################################################
+
+#############
+### Reset ###
+#############
+
+# To establish an additional run and change the configurations 
+
+# reset
+
+t = t + 1
+#h = h + 1
+miss_results = miss_results + 1
+hit_results = hit_results + 1
+miss_counter = miss_counter + 1
+i = i + 1
+pb_hit_counter = pb_hit_counter + 1
+pb_miss_counter = pb_miss_counter + 1
+#pb_miss = pb_miss + 1
+#expected_no_reorganize_payoff = expected_no_reorganize_payoff + 1 
+if input() =="r":
+    t = 0
+    #h = 0
+    miss_results = 0
+    hit_results = 0
+    miss_counter = 0
+    GPN = []
+    Time_Periods = []
+    i = 0
+    pb_hit_counter = 0
+    pb_miss_counter = 0
+    pb_store = []
+    e_n_r_p = []
+    
+    #pb_miss = pb_miss
+    #expected_no_reorganize_payoff = expected_no_reorganize_payoff
+    
+############################################################################
+
+#########################
+### Graphing Attempts ###
+#########################
+
+# Graphing Attempt of Belief 
+
+plt.plot(Time_Periods, pb_store, label="For γ = .6; ʎ = .5, T = 10")
+plt.title("Evolution of Belief over Time")
+plt.ylabel("Belief of Matching the State")
+plt.xlabel("Number of Time Periods")
+plt.legend(loc="upper left")
+plt.show()
+
+# Graphing Attempt of Firm Reorganizations 
+
+plt.plot(Time_Periods, e_r_p, label ="Expected Reorganization Payoff")
+plt.plot(Time_Periods, e_n_r_p, label = "Expected Payoff without Reorganization")
+plt.title("Firm Reorganization")
+plt.ylabel("Payoffs")
+plt.xlabel("Number of Time Periods")
+plt.legend(loc="lower left")
+plt.ylim(9.5, 11)
+plt.show()
+
+
+# Graphing Attempt of Belief over Time
+
+plt.plot(Time_Periods, pb_store, label="For γ = .6; ʎ = .5, T = 100")
+plt.title("Evolution of Belief over Time")
+plt.ylabel("Belief of Matching the State")
+plt.xlabel("Number of Time Periods")
+plt.legend(loc="upper left")
+plt.ylim(-0.1, 1.2)
+plt.show()
+
+# Graphing Attempt of the Decision Mechanism 
+
+plt.plot(Time_Periods, e_r_p, label ="Expected Reorganization Payoff")
+plt.plot(Time_Periods, e_n_r_p, label = "Expected Payoff without Reorganization")
+plt.title("Firm Reorganization")
+plt.ylabel("Payoffs")
+plt.xlabel("Number of Time Periods")
+plt.legend(loc="lower left")
+plt.ylim(9.5, 11)
+plt.show()
+
+    
+    
+
+
+
+
+
