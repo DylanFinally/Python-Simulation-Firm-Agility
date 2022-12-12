@@ -1,0 +1,7 @@
+This second iteration allows the firm´s belief of matching the state to adjust according to the position within the "game". 
+Each period in which the firm fails to acquire a large payout, the belief of matching the state decreases. 
+This belief structure follows a particular path which has been difficult to replicate. 
+As such, a geometric approximation has been used which nears the actual belief structure. 
+The approximation deviates from the actual belief by around 20%. 
+While this may warrant concern, when dealing with beliefs over successive periods in which the firm continues to "miss", such deviations occur in the .0000th percentiles.
+The functional results are nearly identical, despite such deviation. 
