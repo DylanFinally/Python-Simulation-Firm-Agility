@@ -1,0 +1,8 @@
+The third iteration solves the backward induction "game tree" of the agility model. 
+It contains and captures all possible value functions including continuation values. 
+Inner maximization functions are recorded and captured. 
+A spreadsheet of 1s and 0s is populated indicating when the firm would engage in a reorganization or not, at any possible node and any possible period. 
+This spreadsheet is loaded by the simulation. 
+Whenever the simulation is prompted with a potential reorganization, in the case that only a small payoff is received, the spreadsheet will be checked for the appropriate decision. 
+The simulation then proceeds. 
+Just as in the second iteration of the model, a geometric approximation is used to replicate Bayes Theorem which captures declining probability beliefs in matching the state. 
