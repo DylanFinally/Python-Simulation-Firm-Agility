@@ -1,0 +1,400 @@
+"""
+The following code can be very likely combined into a single loop. I have not been able to do so quite yet and have decided to proceed.
+While computationally demanding on the memory of my laptop, the results allow me to commence with the empirical analysis. 
+Note, both for the spreadsheet of the value functions and the reorganization decisions that not all values can be realized. 
+The amount of pn actions can never exceed the amount of time periods, which implies that out of all printed solutions in the spreadsheet, 
+only roughly the diagonal will be considered. 
+
+###########################################################
+### Instructions for replicating the T-n blocks of code ###
+###########################################################
+
+## Adjust the below variables as necessary, making sure that T and the number of blocks of code match.
+* Make sure to change T
+
+# If T = 4, we need T - 1 total blocks of "T-n" code. 
+
+# Instructions for creating further T-n blocks of code:
+* 1) copy the entire block into word
+* 2) use the replace function in the exact following order: 
+* 3) Replace all n values to n + 1, 
+    * if the new block we want to create is T - 4, replace 3 with 4.
+    * This should amount to 20 changes.
+* 4) Then replace all n - 1 values with n
+    * if the new block we want to create is T - 4, replace 2 with 3. 
+    * This should amount to 26 changes. 
+* 5) create a new cell in the notebook and paste the block of code beneath it. 
+
+## Then run the entire notebook. 
+
+"""
+########################################################################################
+
+######################
+### Variable Block ###
+######################
+
+# Make sure to adjust T if necessary
+
+l = .5
+g = .6
+T = 101
+#c = .5
+a = .35
+M = 15
+m = 10
+ca = 1/a
+
+A = (1-l)*(1-g)
+B = (g)
+
+# Provide a name to classify the 'Reorganization_Matrix_'
+name = "test_11_A" + ".csv"
+
+# Provide a name to classify the 'Value_Function_Matrix_'
+name_values = "test_11_A" + ".csv"
+
+########################################################################################
+
+######################
+### Printing Class ### 
+######################
+
+class color:
+   PURPLE = '\033[95m'
+   CYAN = '\033[96m'
+   DARKCYAN = '\033[36m'
+   BLUE = '\033[94m'
+   GREEN = '\033[92m'
+   YELLOW = '\033[93m'
+   RED = '\033[91m'
+   BOLD = '\033[1m'
+   UNDERLINE = '\033[4m'
+   END = '\033[0m'
+
+print(color.BOLD + 'Hello World !' + color.END)
+
+########################################################################################
+
+######################################################
+### Creating an empty dataframe for Reorganization ###
+######################################################
+
+# Creating a dictionary of empty lists
+state_action = {}
+
+for i in range(1,T):
+    state_action["action_p{}".format(i)] = []
+
+# to see the dictionary
+#state_action
+
+# creating an empty dataframe and appending the dictionary lists 
+
+df = pd.DataFrame()
+
+df = df.append(state_action, ignore_index = True, sort = False)
+
+# to see the dataframe
+#print(df)
+
+# adding time periods and the winning state ( p = 1) to the dataframe 
+
+Time_df = 0
+
+df.insert(0,'Time_Period', Time_df)
+
+# having a winning state is probably not necessary since the reorganization check only happens when we lose
+winning_state = 0
+
+df.insert(1,'winning_state_action_p0', winning_state)
+
+#df
+
+# the dataframe is now ready for our system
+
+# configurations for correctly appending values 
+
+n_line = -1
+
+########################################################################################
+
+##########################################################
+### Creating an empty dataframe for calculated _values ###
+##########################################################
+
+# Creating a dictionary of empty lists
+state_action_values = {}
+
+for i in range(1,T):
+    state_action_values["action_p{}".format(i)] = []
+
+# to see the dictionary
+#state_action
+
+##################################################
+
+# creating an empty dataframe and appending the dictionary lists 
+
+df_values = pd.DataFrame()
+
+df_values = df_values.append(state_action_values, ignore_index = True, sort = False)
+
+# to see the dataframe
+
+# configurations for correctly appending values 
+
+# for some reason when I create this second dataset, Time_Period and winning_state are already there???
+
+# in the case that they already exist - rename in the following way:
+
+#df_values.rename(columns={'winning_state':'winning_state_action_p0'}, inplace =True)
+
+# adding time periods and the winning state (p = 1) to the dataframe 
+
+Time_df_values = 0
+
+df_values.insert(0,'Time_Period', Time_df_values)
+
+# having a winning state is probably not necessary since the reorganization check only happens when we lose
+winning_state_values = 0
+
+df_values.insert(1,'winning_state_action_p0', winning_state_values)
+
+#df
+
+# the dataframe is now ready for our system
+
+########################################################################################
+
+############################################################
+#### Certain Initial Dataframe Editing Codes - if needed ###
+############################################################
+
+#dropping a row (helpful when editing the code)
+
+#df.drop([1],axis = 0, inplace=True)
+
+#df_values.drop([1],axis = 0, inplace=True)
+
+# to clear the dataset
+
+#df_values.iloc[0:0]
+
+#df_values.drop(df_values.index, inplace=True)
+
+########################################################################################
+
+#################################
+#### Second Last Stage: T - 1 ###
+#################################
+
+# this code successfully creates the last stage (in this example - period three elements)
+
+print(color.BOLD + "Backward Induction, Time Period:", T-1, "" + color.END)
+
+value_function_time_periods = list(range(1,T))
+
+print("The value function time periods are as follows:", value_function_time_periods)
+type(value_function_time_periods)
+
+# last stage value function in victory case:
+
+v_Tn_min_1 = m + (1-g)*l*M
+print("value_function_1 =", v_Tn_min_1)
+
+value_function_list = []
+value_function_probability_list = []
+
+for i in value_function_time_periods:
+    pn_miss = (A**i)/((A**i)+B)
+    print("pn_miss =", pn_miss)
+    value_function_probability_list.append(pn_miss)
+    #print("value_function_probability_list is", value_function_probability_list)
+    # define last period losing value functions 
+    value_function_pn = pn_miss*(m+(1-g)*l*M)+(1-pn_miss)*m
+    value_function_list.append(value_function_pn)
+    print("value_function_pn =",value_function_pn)
+    df_values.loc[n_line + 1,'Time_Period'] = T-1
+    df_values.loc[n_line + 1,'action_p{}'.format(i)]=value_function_pn
+    df_values.loc[n_line + 1,'winning_state_action_p0'] = v_Tn_min_1
+    
+print("value function probability list is", value_function_probability_list)
+#print("value function list is", value_function_list)
+
+########################################################################################
+
+#############
+### T - 2 ###
+#############
+
+# Setting up from previous period:
+# Value Function, p = 1, for period T-2
+
+print( "Value Function, p = 1, for period", T-1)
+
+v_Tn_min_2 = g*(m+max(value_function_list[0],v_Tn_min_1-ca))+(1-g)*(1-l)*(m+max(value_function_list[0],v_Tn_min_1-ca))+(1-g)*l*(M+m+v_Tn_min_1)
+print(v_Tn_min_1)
+
+print("ca is", ca)
+
+print(color.BOLD + "Basis for Reorganization Check in Period:", T-2,"-->", v_Tn_min_1-ca, "" + color.END)
+
+print(value_function_list)
+
+#################################################
+
+# Generating results for reorganization_decision 
+
+print(color.BOLD + "Backward Induction - Time Period:",T-2, "" + color.END)
+print(color.BOLD + "Only consider the first", T-2, "solutions in the list."+ color.END)
+
+# Creating the Period 2 pn solutions 
+continuation_function_Tn_min_2 = {}
+k = 1
+j = -1
+lp = 0
+#reorganize_counter = 0
+
+##reorganize_counter_df = pd.concat(reorganize_counter)
+while k < len(value_function_list):
+    for item in enumerate(value_function_list):
+        continuation_function_Tn_min_2["continuation_function{}".format(item)] = value_function_probability_list[lp]*(g*(m+max(value_function_list[j],v_Tn_min_1-ca))+(1-g)*(1-l)*(m+max(value_function_list[j],v_Tn_min_1-ca))+(1-g)*l*(M+m+v_Tn_min_1))+(1-value_function_probability_list[lp])*(m+max(value_function_list[j],v_Tn_min_1-ca))
+                
+        k = k + 1
+        lp = lp + 1
+       
+    for i in range(1,T):
+        j = j + 1
+        if value_function_list[j] > v_Tn_min_1-ca:
+            #print("The agent does not reorganize.")
+            df.loc[n_line + 1,'Time_Period'] = T-2
+            df.loc[n_line + 1,'action_p{}'.format(i)]=0
+        else: 
+            #print("The agent reorganizes.")
+            df.loc[n_line + 1,'Time_Period'] = T-2
+            df.loc[n_line + 1,'action_p{}'.format(i)]=1
+                      
+    df.loc[n_line + 1,'winning_state_action_p0'] = 0
+        
+continuation_function_Tn_min_2
+
+# taking dictionary values and converting them to a list 
+result_Tn_min_2 = list(continuation_function_Tn_min_2.values())
+
+##########################################################################
+### Adding the calculated values to a dataframe for graphing purposes ####
+##########################################################################
+
+for i in range(1,T):
+        df_values.loc[n_line + 2,'Time_Period'] = T-2
+        df_values.loc[n_line + 2,'action_p{}'.format(i)]= result_Tn_min_2[i-1]
+        df_values.loc[n_line + 2,'winning_state_action_p0'] = v_Tn_min_2
+        
+########################################################################################
+    
+#############
+### T - 3 ###
+#############
+
+# Setting up from previous period:
+# Value function p=1 for period T-3
+print("Value Function, p = 1, for period", T-2)
+
+v_Tn_min_3 = g*(m+max(result_Tn_min_2[0],v_Tn_min_2-ca))+(1-g)*(1-l)*(m+max(result_Tn_min_2[0],v_Tn_min_2-ca))+(1-g)*l*(M+m+v_Tn_min_2)
+print(v_Tn_min_2)
+
+print("ca is", ca)
+
+print(color.BOLD + "Basis for Reorganization Check in Period:", T-3,"-->", v_Tn_min_2-ca, "" + color.END)
+
+#print(result_Tn_min_2)
+
+#############################################################################
+print(color.BOLD + "Backward Induction, Time Period:", T-3, "" + color.END)
+print(color.BOLD + "Only consider the first", T-3, "solutions in the list."+ color.END)
+
+# creating period 1 pn solutions - we need the first one only 
+continuation_function_Tn_min_3 = {}
+k = 1
+j = -1
+lp = 0
+reorganize_counter = 0
+
+while k < len(result_Tn_min_2):
+    for item in enumerate(result_Tn_min_2):
+        continuation_function_Tn_min_3["cont_fun_2{}".format(item)] = value_function_probability_list[lp]*(g*(m+max(result_Tn_min_2[j],v_Tn_min_2-ca))+(1-g)*(1-l)*(m+max(result_Tn_min_2[j],v_Tn_min_2-ca))+(1-g)*l*(M+m+v_Tn_min_2))+(1-value_function_probability_list[lp])*(m+max(result_Tn_min_2[j],v_Tn_min_2-ca))
+        k = k + 1
+        lp = lp + 1
+        
+    for i in range(1,T):
+        j = j + 1
+        if result_Tn_min_2[j] > v_Tn_min_2-ca:
+            #print("The agent does not reorganize.")
+            df.loc[n_line + 2,'Time_Period'] = T-3
+            df.loc[n_line + 2,'action_p{}'.format(i)]=0
+        else: 
+            #print("The agent reorganizes.")
+            df.loc[n_line + 2,'Time_Period'] = T-3
+            df.loc[n_line + 2,'action_p{}'.format(i)]=1
+      
+    df.loc[n_line + 2,'winning_state_action_p0'] = 0
+    
+#print(continuation_function_Tn_min_3)
+
+result_Tn_min_3 = list(continuation_function_Tn_min_3.values())
+
+#print(result_Tn_min_3)
+
+##########################################################################
+### Adding the calculated values to a dataframe for graphing purposes ####
+##########################################################################
+ 
+for i in range(1,T):
+        df_values.loc[n_line + 3,'Time_Period'] = T-3
+        df_values.loc[n_line + 3,'action_p{}'.format(i)]= result_Tn_min_3[i-1]
+        df_values.loc[n_line + 3,'winning_state_action_p0'] = v_Tn_min_3
+    
+############################################################################
+
+########################
+### Value Function 0 ###
+########################
+
+"""
+This currently must be adjusted manually depending on the number of periods.
+
+It is not necessary for the creation of the tables.
+
+Currently we see the example for a 4 period game. 
+
+# the T = 0 value function - different from others. 
+
+#value function t-4 (in this example this is the zero value function - adjust as necessary)
+print(color.BOLD + "Value Function, p = 1, for period", T-4,"" + color.END)
+
+v_Tn_min_4 = (g+(1-g)*(1-l))*(m+max(result_Tn_min_2[0],v_Tn_min_3-ca))+(1-g)*l*(M+m+v_Tn_min_3)
+print(v_Tn_min_4)
+
+"""
+
+############################################################################
+
+###############################
+### Creating the CSV Matrix ###
+###############################
+
+# exporting the dataframe to a csv file 
+
+df.to_csv('Reorganization_Matrix_' + name, index=False)
+
+df_values.to_csv('Value_Functions_' + name_values, index=False)
+
+"""
+# checking to read the individual cell position of the csv file. 
+
+Test = pd.read_csv('Reorganization_Matrix_' + name)
+
+print(Test)
+"""
+
