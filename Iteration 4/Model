@@ -1,0 +1,530 @@
+####################################
+### Importing Necessary Packages ###
+####################################
+
+import re
+import numpy as np
+import pandas as pd
+import itertools 
+import operator 
+import matplotlib
+import matplotlib.pyplot as plt
+from itertools import accumulate
+import datetime 
+import os 
+
+###############################################################
+
+#########################
+### Working Directory ###
+#########################
+
+os.chdir(r'C:\Users\dylan\')
+
+###############################################################
+
+######################
+### Printing Class ### 
+######################
+
+class color:
+   PURPLE = '\033[95m'
+   CYAN = '\033[96m'
+   DARKCYAN = '\033[36m'
+   BLUE = '\033[94m'
+   GREEN = '\033[92m'
+   YELLOW = '\033[93m'
+   RED = '\033[91m'
+   BOLD = '\033[1m'
+   UNDERLINE = '\033[4m'
+   END = '\033[0m'
+
+print(color.BOLD + 'Hello World !' + color.END)
+
+#######################
+### Variable Set up ###
+#######################
+
+l_low = .5
+g_low = .6
+T_low = 101
+a_low = .35
+M_low = 15
+m_low = 10
+ca_low = 1/a_low
+
+A_low = (1-l_low)*(1-g_low)
+B_low = (g_low)
+
+
+###############################################################
+
+######################
+### Configurations ###
+######################
+
+"""
+Low Configuration
+"""
+## Creating the Initial Set Up Variables ##
+## If a variable above is changed, this bloc must be run again ##
+
+# State of the environment 
+D_low = [0,1]
+
+# Product Variety by the Firm / Agent 
+d_low = 0
+
+# Initial Time Period  
+t_low = 0
+
+print("Future cost of reorganization is", ca_low)
+
+# Needed for the np.random outcome function
+game_low = 1
+
+#needed for binary probability 
+x_low = 1-g_low
+y_low = 1-l_low
+
+gamma_probabilities_low = [g_low, x_low]
+lambda_probabilities_low = [l_low, y_low]
+large_payoff_scheme_low = [M_low,0]
+
+# Period 1 Payoffs: 
+just_hit_payoff_low = M_low + m_low 
+dont_hit_payoff_low = m_low
+#expected_reorganize_payoff = -ca + (1-g)*l*M + m
+#expected_no_reorganize_payoff = pb*(1-g)*l*M + m
+general_equation_low = (1-g_low)*l_low*M_low + m_low
+miss_low = m_low - ca_low
+
+# Configurations to extract results 
+hit_results_low = 0
+miss_results_reorg_low = 0 
+miss_results_noorg_low = 0
+miss_results_low = 0
+miss_counter_low = 0
+miss_range_low = T_low
+
+# Graphing Configurations 
+solutions_low = []
+Time_Periods_low = []
+time_counter_low = 0
+pb_store_low = []
+
+# Further Graphing Configurations 
+cumulative_payout_solutions_low = list(accumulate(solutions_low))
+i_low = 0
+
+pb_hit_low = (A_low)/(A_low + B_low)
+pb_miss_low = (A_low**i_low)/((A_low**i_low)+B_low)
+pb_hit_counter_low = 0
+pb_miss_counter_low = 0
+
+n_low = 0
+print("pb_miss is", pb_miss_low)
+print("pb_hit is", pb_hit_low)
+
+# these are not correct but for this run we will use them 
+expected_reorganize_payoff_low = -ca_low + (1-g_low)*l_low*M_low + m_low
+expected_no_reorganize_payoff_low = pb_miss_low*(1-g_low)*l_low*M_low + m_low
+
+#print("pb_miss test is", pb_miss_test)
+
+perfect_game_payout_low = pb_hit_low*(1-g_low)*l_low*M_low + m_low
+print("perfect_game_payout =", perfect_game_payout_low)
+
+# Graphing Configurations
+
+# Into these empty lists we will append the according value functions
+r_low = []
+
+# continuation value configurations 
+reorganization_decision_low = 1
+matrix_counter_low = 0
+
+# Creating an "env"ironment state variable 
+
+en_low = 0
+en_low_reorg = 0
+en_low_noreorg = 0
+
+###############################################################
+
+##############################################################
+### Reorganization_Matrix_{selected name in previous file} ###
+##############################################################
+
+df_low = pd.read_csv('Reorganization_Matrix_test_101_A.csv')
+
+print(df_low)
+
+###############################################################
+
+########################################################
+### Value_Functions_{selected name in previous file} ###
+########################################################
+
+df_values_low = pd.read_csv('Value_Functions_test_101_A.csv')
+
+print(df_values_low)
+
+###############################################################
+
+############################
+### Belief Structure Low ###
+############################
+
+def belief_structure_low():
+    global miss_counter_low
+    global pb_hit_counter_low
+    global pb_miss_counter_low
+    global expected_no_reorganize_payoff_low
+    global t_low
+    global df_reorg_belief_miss_low
+    global df_reorg_belief_low
+    global action_cols_hit_low
+    global action_cols_miss_low
+    global record_value_miss_low
+    global record_value_hit_low
+    
+    print(color.BOLD + "belief_structure check" + color.END)
+    if miss_counter_low == 0 and t_low < T_low:
+        pb_hit_counter_low = pb_hit_counter_low + 1
+        #t = t + 1
+        print("pb_hit_counter is", pb_hit_counter_low)          
+        bullseye_low = 1
+        print("your belief of matching the state has reset and is now", bullseye_low)
+        pb_store_low.append(bullseye_low)
+        action_cols_hit_low = [col for col in df_values_low.columns if str(miss_counter_low) in col]
+        df_reorg_belief_low = df_values_low.loc[df_values_low['Time_Period']==t_low]
+        df_reorg_belief_low.filter(like=action_cols_hit_low[0], axis=1)
+        df_reorg_belief_low.iloc[0][action_cols_hit_low[0]]
+        record_value_hit_low = df_reorg_belief_low.iloc[0][action_cols_hit_low[0]]
+        r_low.append(record_value_hit_low)
+        
+    
+    if miss_counter_low > 0 and t_low < T_low:
+        #with the current configuration the miss counter does not change
+        #miss_counter = miss_counter + 1
+        pb_miss_counter_low = pb_miss_counter_low + 1
+        #t = t + 1
+        print("pb_miss_counter is", pb_miss_counter_low)
+        pb_miss_low = (A_low**i_low)/((A_low**i_low)+B_low)
+        print("your belief of matching the state is now", pb_miss_low)
+        pb_store_low.append(pb_miss_low)
+        action_cols_miss_low = [col for col in df_values_low.columns if str(miss_counter_low) in col]
+        df_reorg_belief_miss_low = df_values_low.loc[df_values_low['Time_Period']==t_low]
+        df_reorg_belief_miss_low.filter(like=action_cols_miss_low[0], axis=1)
+        df_reorg_belief_miss_low.iloc[0][action_cols_miss_low[0]]
+        record_value_miss_low = df_reorg_belief_miss_low.iloc[0][action_cols_miss_low[0]]
+        r_low.append(record_value_miss_low)
+        #reorganization_check()
+        
+###############################################################
+
+################################
+### Reorganization Check Low ###
+################################
+
+
+def reorganization_check_low():
+    global expected_no_reorganize_payoff_low
+    global pb_miss_low
+    global i_low
+    global state_change_low
+    global hit_results_low
+    global miss_results_low
+    global t_low
+    global miss_counter_low
+    global df_reorg_low
+    global action_cols_low
+    global revelation_low
+    global matrix_counter_low
+    global state_change_check_low
+    global en_low
+    global en_low_reorg
+    global en_low_noreorg
+    global d_low 
+    
+    print(color.BOLD + "Reorganization_Check()" + color.END)
+   
+    if t_low < T_low-1:
+        
+        action_cols_low = [col for col in df_low.columns if str(miss_counter_low) in col]
+        df_reorg_low = df_low.loc[df_low['Time_Period']==t_low]
+        df_reorg_low.filter(like=action_cols_low[0], axis=1)
+        df_reorg_low.iloc[0][action_cols_low[0]]
+        revelation_low = df_reorg_low.iloc[0][action_cols_low[0]]
+        print("revelation =", revelation_low,"and reorganization_decision =", reorganization_decision_low)
+        if (revelation_low == reorganization_decision_low):
+            print(color.BOLD + "You reorganize." + color.END)
+            miss_results_low = miss_results_low + 1
+            loser_1_low = float(miss_low)
+            solutions_low.append(loser_1_low)
+            Time_Periods_low.append(t_low)
+            t_low = t_low + 1
+            matrix_counter_low = matrix_counter_low + 1
+            print("The Time Period is now", t_low)
+            # The following indicates that our matrix issues a reorganization order. 
+            if matrix_counter_low == 1:
+                state_change_check_low = np.random.choice(D_low, size=game_low, p=gamma_probabilities_low)
+                if state_change_check_low == 1:
+                    en_low_reorg = random.randint(1,10000)
+                else: 
+                    en_low_reorg = en_low 
+                d_low = en_low
+                print(color.BOLD + "matrix_counter is", matrix_counter_low, "state_change_check is ", state_change_check_low, "and d_low is", d_low, "" + color.END)
+            #the miss counter resets as soon as the player decides to reorganize
+            #miss_counter = 0
+                if d_low == en_low_reorg:
+                    outcome_low = np.random.choice(large_payoff_scheme_low,size=game_low, p=lambda_probabilities_low)
+                    if outcome_low == 0:
+                        print(color.BOLD + "EMa / M: Miss 2.1" + color.END)
+                        miss_counter_low = miss_counter_low + 1
+                        print("miss_counter is now", miss_counter_low)
+                        i_low = i_low + 1                                             
+                        belief_structure_low()
+                        reorganization_check_low()
+                       
+                    else:
+                        print(color.BOLD + "EMa / H: Hit 2.1" + color.END)
+                        miss_counter_low = 0
+                        matrix_counter_low = 0
+                        print("miss_counter is now", miss_counter_low)
+                        i_low = 0                       
+                        belief_structure_low()
+                        hit_results_low = hit_results_low + 1
+                        miss_results_low = miss_results_low
+                        winner_low = float(just_hit_payoff_low)
+                        solutions_low.append(winner_low)
+                        Time_Periods_low.append(t_low)
+                       
+                else:
+                    print(color.BOLD + " EN / M: Miss 2.3" + color.END)
+                    miss_counter_low = miss_counter_low + 1
+                    print("miss_counter is now", miss_counter_low)
+                    i_low = i_low + 1                  
+                    belief_structure_low()
+                    reorganization_check_low()
+            # Our reorganization matrix does not issue a reorganization order. 
+            else:
+                d_low = d_low
+                state_change_check_low = np.random.choice(D_low, size=game_low, p=gamma_probabilities_low)
+                print(color.BOLD + "matrix_counter is", matrix_counter_low, "state_change_check is ", state_change_check_low, "and d_low is", d_low, "" + color.END)
+                if state_change_check_low == 1:
+                    en_low_noreorg = random.randint(1,10000)
+                else: 
+                    en_low_noreorg = en_low
+                if d_low == en_low_noreorg:
+                    outcome_low = np.random.choice(large_payoff_scheme_low,size=game_low, p=lambda_probabilities_low)
+                    if outcome_low == 0:
+                        print(color.BOLD + "EMa / M: Miss 2.1" + color.END)
+                        miss_counter_low = miss_counter_low + 1
+                        print("miss_counter is now", miss_counter_low)
+                        i_low = i_low + 1                     
+                        belief_structure_low()
+                        reorganization_check_low()                 
+                    else:
+                        print(color.BOLD + "EMa / H: Hit 2.1" + color.END)
+                        miss_counter_low = 0
+                        matrix_counter_low = 0
+                        print("miss_counter is now", miss_counter_low)
+                        i_low = 0                       
+                        belief_structure_low()
+                        hit_results_low = hit_results_low + 1
+                        miss_results_low = miss_results_low
+                        winner_low = float(just_hit_payoff_low)
+                        solutions_low.append(winner_low)
+                        Time_Periods_low.append(t_low)
+                        
+                else:
+                    print(color.BOLD + " EN / M: Miss 2.3" + color.END)
+                    miss_counter_low = miss_counter_low + 1
+                    print("miss_counter is now", miss_counter_low)
+                    i_low = i_low + 1                   
+                    belief_structure_low()
+                    reorganization_check_low()                  
+        else:
+            print("You do not reorganize.")
+            matrix_counter_low = 0
+            miss_results_low = miss_results_low + 1
+            hit_results_low = hit_results_low
+            loser_low = float(m_low)
+            solutions_low.append(loser_low)
+            Time_Periods_low.append(t_low)
+    else:
+        print("You are in the second last stage and won´t reorganize.")
+        matrix_counter_low = 0
+        miss_results_low = miss_results_low + 1
+        hit_results_low = hit_results_low
+        loser_low = float(m_low)
+        solutions_low.append(loser_low)
+        Time_Periods_low.append(t_low)
+           
+###############################################################
+
+########################
+### Agility Game Low ###
+########################
+def agility_game_low():
+    global t_low
+    global miss_results_low
+    global hit_results_low
+    global miss_counter_low
+    global i_low 
+    global pb_miss_low
+    global expected_no_reorganize_payoff_low
+    global state_change_low
+    global t_low
+    global matrix_counter_low
+    global en_low 
+    global en_low_reorg
+    global en_low_noreorg
+    global d_low
+    
+    
+    while t_low < T_low-1: 
+        t_low = t_low + 1        
+        print(color.BOLD + "Agility_Game()" + color.END)
+        print("The Time Period is now", t_low)
+        state_change_low = np.random.choice(D_low, size=game_low, p=gamma_probabilities_low)
+        if state_change_low == 1:
+            en_low = random.randint(1,10000)
+        else: 
+            en_low = en_low
+        if d_low == en_low:
+            outcome_low = np.random.choice(large_payoff_scheme_low,size=game_low, p=lambda_probabilities_low)
+            if outcome_low == 0:
+                # Miss 1.1 
+                print(color.BOLD + "EMa / M: Miss 1.1" + color.END)
+                miss_counter_low = miss_counter_low + 1                
+                print("miss_counter is now", miss_counter_low)
+                i_low = i_low + 1                
+                belief_structure_low()
+                reorganization_check_low()
+                
+            else:
+                # Hit 1.2 
+                print(color.BOLD + "EMa / H: Hit 1.2" + color.END)
+                miss_counter_low = 0
+                matrix_counter_low = 0
+                print("miss_counter is now", miss_counter_low)
+                i_low = 0
+                bullseye_low = 1                
+                belief_structure_low()
+                hit_results_low = hit_results_low + 1
+                miss_results_low = miss_results_low
+                winner_low = float(just_hit_payoff_low)
+                solutions_low.append(winner_low)
+                Time_Periods_low.append(t_low)             
+                
+        else:
+            # Miss 1.3 
+            print(color.BOLD + "EN / M: Miss 1.3" + color.END)
+            miss_counter_low = miss_counter_low + 1
+            i_low = i_low + 1
+            belief_structure_low()
+            reorganization_check_low()
+                                    
+    print("You have missed", miss_results_low, "times and hit", hit_results_low, "times.")
+    print("You have individual payoffs of", solutions_low)
+    print("You have cumulative payoffs of", list(accumulate(solutions_low)))
+    print("Total Time Periods:", Time_Periods_low)
+    print("Evolution of Belief Structure", pb_store_low)
+    
+###############################################################
+
+##############################
+### Running the simulation ###
+##############################
+
+agility_game_low()
+
+    
+###############################################################
+
+#############
+### Reset ###
+#############
+
+t_low = t_low + 1
+
+miss_results_low = miss_results_low + 1
+hit_results_low = hit_results_low + 1
+miss_counter_low = miss_counter_low + 1
+i_low = i_low + 1
+pb_hit_counter_low = pb_hit_counter_low + 1
+pb_miss_counter_low = pb_miss_counter_low + 1
+matrix_counter_low = matrix_counter_low + 1
+en_low = en_low + 1
+en_low_reorg = en_low_reorg + 1
+en_low_noreorg = en_low_noreorg + 1
+
+if input() =="r":
+    t_low = 0
+    #h = 0
+    miss_results_low = 0
+    hit_results_low = 0
+    miss_counter_low = 0
+    solutions_low_low = []
+    Time_Periods_low = []
+    i_low = 0
+    pb_hit_counter_low = 0
+    pb_miss_counter_low = 0
+    pb_store_low = []
+    solutions_low = []
+    matrix_counter_low = 0
+    r_low = []
+    en_low = 0
+    en_low_reorg = 0
+    en_low_noreorg = 0
+    
+###############################################################
+
+##########################
+### Graphs and Visuals ###
+##########################
+
+# Graphing Attempt of Belief 
+
+plt.plot(Time_Periods_low, pb_store_low, label="For γ = .6; ʎ = .5, T = 101")
+plt.title("Evolution of Belief over Time")
+plt.ylabel("Belief of Matching the State")
+plt.xlabel("Number of Time Periods")
+plt.legend(loc="upper left")
+plt.show()
+
+# Graphing Attempt of Payout
+
+plt.plot(Time_Periods_low, solutions_low, label="For γ = .6; ʎ = .5, T = 101")
+plt.title("Payouts each Period")
+plt.ylabel("Belief of Matching the State")
+plt.xlabel("Number of Time Periods")
+plt.legend(loc="upper left")
+plt.show()
+
+# Graphing Attempt of Payout
+
+plt.plot(Time_Periods_low, list(accumulate(solutions_low)), label="For γ = .6; ʎ = .5, T = 101")
+plt.title("Evolution of Payouts")
+plt.ylabel("Belief of Matching the State")
+plt.xlabel("Number of Time Periods")
+plt.legend(loc="upper left")
+plt.show()
+
+# Graphing Value Functions
+
+plt.plot(Time_Periods_low, r_low , label="For γ = .6; ʎ = .5, T = 101")
+plt.title("Evolution of Value Functions")
+plt.ylabel("Value Functions with Continuation Value")
+plt.xlabel("Number of Time Periods")
+plt.legend(loc="upper left")
+plt.show()
+
+
+    
+    
+
+
